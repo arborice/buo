@@ -1,0 +1,18 @@
+[package]
+name = "berry"
+version = "0.1.0"
+authors = ["hal9000 <hal@9000.com>"]
+edition = "2018"
+
+[dependencies]
+anyhow = "1.0.41"
+clap = { git = "https://github.com/clap-rs/clap/" }
+serde = { version = "1.0.126", features = ["derive"] }
+symphonia = { version = "0.2.0", features = ["aac", "flac", "isomp4", "mp3", "wav", "ogg", "pcm"] }
+toml = "0.5.8"
+
+[profile.release]
+codegen-units = 1
+opt-level = 3
+lto = true
+panic = "abort"
