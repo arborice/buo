@@ -6,7 +6,9 @@ edition = "2018"
 
 [dependencies]
 anyhow = "1.0.41"
+chrono = { version = "0.4.19", features = ["serde"] }
 clap = { git = "https://github.com/clap-rs/clap/" }
+matroska = "0.7.0"
 mlua = { version = "0.5", features = ["lua54", "vendored", "serialize"] }
 serde = { version = "1.0.126", features = ["derive"] }
 serde_json = "1.0.64"
