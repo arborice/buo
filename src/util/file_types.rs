@@ -12,26 +12,35 @@ pub struct NodeMeta<'name> {
 pub enum FileExt {
     #[strum(serialize = "Not a supported file type")]
     Invalid,
-    Mkv,
-    Flv,
-    Mp4,
-    Mp3,
-    M4v,
-    M4a,
-    Mov,
 
-    // TEXT
+    // Audio
+    Mp3,
+    M4a,
+    Wav,
+
+    // Video
+    Mp4,
+    M4v,
+    Flv,
+    Mkv,
+    Mov,
+    Webm,
+
+    // Text
     Txt,
     Docx,
     Md,
+    Odf,
 
-    Webm,
+    // Img
     Gif,
     Png,
     Jpeg,
     Jpg,
     #[strum(serialize = "RAW")]
     Raw,
+
+    // Dev
     Html,
     Js,
     Rs,
@@ -45,6 +54,8 @@ pub enum FileExt {
     Css,
     Dart,
     Java,
+
+    // Data
     Toml,
     Yaml,
     Yml,
@@ -54,12 +65,12 @@ pub enum FileExt {
 }
 
 impl FileExt {
-    const TEXT: &'static [Self] = &[Self::Txt, Self::Md, Self::Docx];
+    const TEXT: &'static [Self] = &[Self::Txt, Self::Md, Self::Docx, Self::Odf];
     pub fn is_text(&self) -> bool {
         Self::TEXT.contains(self)
     }
 
-    const AUDIO: &'static [Self] = &[Self::Mp3, Self::M4a];
+    const AUDIO: &'static [Self] = &[Self::Mp3, Self::M4a, Self::Wav];
     pub fn is_audio(&self) -> bool {
         Self::AUDIO.contains(self)
     }
@@ -113,7 +124,15 @@ impl Default for FileExt {
 }
 
 impl From<&str> for FileExt {
-    fn from(s: &str) -> FileExt {
+    fn from(s: &str) -> Self {
+        FileExt::iter()
+            .find(|ext| ext.as_ref() == s)
+            .unwrap_or_default()
+    }
+}
+
+impl From<&std::ffi::OsStr> for FileExt {
+    fn from(s: &std::ffi::OsStr) -> Self {
         FileExt::iter()
             .find(|ext| ext.as_ref() == s)
             .unwrap_or_default()

@@ -33,21 +33,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 
 [[package]]
-name = "berry"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "mlua",
- "serde",
- "serde_json",
- "serde_yaml",
- "strum",
- "symphonia",
- "toml",
-]
-
-[[package]]
 name = "bitflags"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -60,6 +45,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "90682c8d613ad3373e66de8c6411e0ae2ab2571e879d2efbf73558cc66f21279"
 dependencies = [
  "memchr",
+]
+
+[[package]]
+name = "buo"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "mlua",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "strum",
+ "symphonia",
+ "toml",
 ]
 
 [[package]]

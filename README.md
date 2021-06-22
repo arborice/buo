@@ -1,5 +1,5 @@
 # README
 
-## Berry
+## Buo
 
-_Extensible global bookmarking utility powered by a neural network_
+_Extensible intelligent finder powered by a neural network_
