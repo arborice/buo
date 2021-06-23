@@ -12,13 +12,11 @@ use util::media::audio::get_audio_metadata;
 use clap::Clap;
 
 fn main() -> Result<()> {
-    let BuoArgs { target_file } = BuoArgs::parse();
+    let BuoArgs { target_files } = BuoArgs::parse();
 
-    if let Some(audio_meta) = get_audio_metadata(&target_file)? {
+    for target_file in target_files {
+        let audio_meta = get_audio_metadata(&target_file)?;
         println!("{}", audio_meta);
-    } else {
-        println!("No metadata found!");
     }
-
     Ok(())
 }

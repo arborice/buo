@@ -5,13 +5,14 @@ use std::{fs::File, path::Path};
 pub fn get_mkv_metadata(path: &Path) -> Result<MediaMeta> {
     let source = Matroska::open(File::open(path)?)?;
     let meta = source.info;
-    let pretty_meta: MediaMeta = meta.try_into()?;
+
+    let file_name = get_file_name(path);
+    let pretty_meta: MediaMeta = meta.into_meta(file_name)?;
     Ok(pretty_meta)
 }
 
-impl TryInto<MediaMeta> for Info {
-    type Error = anyhow::Error;
-    fn try_into(self) -> Result<MediaMeta, Self::Error> {
+impl IntoMeta for Info {
+    fn into_meta(self, file_name: String) -> Result<MediaMeta> {
         let Info {
             title,
             duration,
@@ -29,9 +30,10 @@ impl TryInto<MediaMeta> for Info {
         }
 
         Ok(MediaMeta {
+            file_name,
             title,
             duration,
-            date: date_utc,
+            date: date_utc.map(DateKind::Chrono),
             ..Default::default()
         })
     }

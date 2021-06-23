@@ -8,7 +8,7 @@ use symphonia::core::{
     probe::{Hint, ProbeResult},
 };
 
-pub fn get_audio_metadata(path: &Path) -> Result<Option<MediaMeta>> {
+pub fn get_audio_metadata(path: &Path) -> Result<MediaMeta> {
     let mut hint = Hint::new();
 
     if let Some(ext) = path.extension().and_then(|ext| ext.to_str()) {
@@ -28,25 +28,26 @@ pub fn get_audio_metadata(path: &Path) -> Result<Option<MediaMeta>> {
         &meta_opts,
     )?;
 
-    let pretty_printed_meta = pretty_meta(probe);
-    Ok(pretty_printed_meta)
+    let file_name = get_file_name(path);
+    pretty_meta(file_name, probe)
 }
 
-fn pretty_meta(probe: ProbeResult) -> Option<String> {
-    let meta = probe
+fn pretty_meta(file_name: String, probe: ProbeResult) -> Result<MediaMeta> {
+    if let Some(meta) = probe
         .format
         .metadata()
         .current()
-        .or_else(|| probe.metadata.current())?;
-
-    let tags = meta.tags();
-    pretty_tags(tags)
+        .or_else(|| probe.metadata.current())
+    {
+        let tags = meta.tags();
+        tags.into_meta(file_name)
+    } else {
+        Ok(Default::default())
+    }
 }
 
-impl TryInto<MediaMeta> for &[Tag] {
-    type Error = anyhow::Error;
-
-    fn try_into(self) -> Result<MediaMeta, Self::Error> {
+impl IntoMeta for &[Tag] {
+    fn into_meta(self, file_name: String) -> Result<MediaMeta> {
         if self.is_empty() {
             return Err(anyhow!("No metadata available!"));
         }
@@ -56,8 +57,8 @@ impl TryInto<MediaMeta> for &[Tag] {
 
         let mut title = None;
         let mut author = None;
-        let mut duration = None;
         let mut date = None;
+
         for (key, value) in known
             .drain(..)
             .map(|Tag { std_key, value, .. }| (std_key.unwrap(), value))
@@ -71,11 +72,11 @@ impl TryInto<MediaMeta> for &[Tag] {
                         author.replace(value.to_string());
                     }
                 }
-                StandardTagKey::Duration => {
-                    duration.replace(value.to_string());
+                StandardTagKey::OriginalDate => {
+                    date.replace(DateKind::Sym(value.to_string()));
                 }
-                StandardTagKey::Date => {
-                    date.replace(value);
+                StandardTagKey::TrackTitle => {
+                    title.replace(value.to_string());
                 }
                 _ => {}
             }
@@ -86,14 +87,14 @@ impl TryInto<MediaMeta> for &[Tag] {
             .map(|Tag { key, value, .. }| format!("{}: {}", key, value))
             .collect::<Vec<_>>()
             .join("\n");
-        let mut prettified_tags = vec![];
 
         Ok(MediaMeta {
+            file_name,
             title,
             author,
-            duration,
             date,
-            extra,
+            extra: Some(extra),
+            ..Default::default()
         })
     }
 }
