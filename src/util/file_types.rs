@@ -7,7 +7,7 @@ pub struct NodeMeta<'name> {
     pub file_name: &'name str,
 }
 
-#[derive(AsRefStr, Debug, Deserialize, EnumIter, PartialEq, Eq)]
+#[derive(AsRefStr, Copy, Clone, Debug, Deserialize, EnumIter, Hash, PartialEq, Eq)]
 #[strum(serialize_all = "lowercase")]
 pub enum FileExt {
     #[strum(serialize = "Not a supported file type")]
@@ -61,7 +61,7 @@ pub enum FileExt {
     Yml,
     Json,
     Ini,
-    Xss,
+    Xml,
 }
 
 impl FileExt {
@@ -110,7 +110,7 @@ impl FileExt {
         Self::Yml,
         Self::Yaml,
         Self::Ini,
-        Self::Xss,
+        Self::Xml,
     ];
     pub fn is_data(&self) -> bool {
         Self::DATA.contains(self)
@@ -123,6 +123,13 @@ impl Default for FileExt {
     }
 }
 
+impl PartialEq<str> for FileExt {
+    fn eq(&self, other: &str) -> bool {
+        FileExt::iter().any(|ext| ext.as_ref() == other)
+    }
+}
+
+// THESE ARE INFALLIBLE - NOT SUITABLE FOR DISPATCH
 impl From<&str> for FileExt {
     fn from(s: &str) -> Self {
         FileExt::iter()

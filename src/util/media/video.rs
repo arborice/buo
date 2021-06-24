@@ -1,14 +1,19 @@
 use crate::prelude::*;
 use matroska::{Info, Matroska};
-use std::{fs::File, path::Path};
+use std::fs::File;
 
-pub fn get_mkv_metadata(path: &Path) -> Result<MediaMeta> {
-    let source = Matroska::open(File::open(path)?)?;
-    let meta = source.info;
+use crate::util::traits::ExtCallback;
+pub struct VideoAnalyzer;
 
-    let file_name = get_file_name(path);
-    let pretty_meta: MediaMeta = meta.into_meta(file_name)?;
-    Ok(pretty_meta)
+impl ExtCallback for VideoAnalyzer {
+    fn try_get_meta(self, path: &std::path::Path) -> Result<MediaMeta> {
+        let source = Matroska::open(File::open(path)?)?;
+        let meta = source.info;
+
+        let file_name = get_file_name(path);
+        let pretty_meta: MediaMeta = meta.into_meta(file_name)?;
+        Ok(pretty_meta)
+    }
 }
 
 impl IntoMeta for Info {

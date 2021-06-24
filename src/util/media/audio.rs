@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use std::{fs::File, path::Path};
+use std::fs::File;
 
 use symphonia::core::{
     formats::FormatOptions,
@@ -8,28 +8,33 @@ use symphonia::core::{
     probe::{Hint, ProbeResult},
 };
 
-pub fn get_audio_metadata(path: &Path) -> Result<MediaMeta> {
-    let mut hint = Hint::new();
+use crate::util::traits::ExtCallback;
+pub struct AudioAnalyzer;
 
-    if let Some(ext) = path.extension().and_then(|ext| ext.to_str()) {
-        hint.with_extension(ext);
+impl ExtCallback for AudioAnalyzer {
+    fn try_get_meta(self, path: &std::path::Path) -> Result<MediaMeta> {
+        let mut hint = Hint::new();
+
+        if let Some(ext) = path.extension().and_then(|ext| ext.to_str()) {
+            hint.with_extension(ext);
+        }
+
+        let source = Box::new(File::open(path)?);
+        let media_source_stream = MediaSourceStream::new(source, Default::default());
+
+        let format_opts = FormatOptions::default();
+        let meta_opts = MetadataOptions::default();
+
+        let probe = symphonia::default::get_probe().format(
+            &hint,
+            media_source_stream,
+            &format_opts,
+            &meta_opts,
+        )?;
+
+        let file_name = get_file_name(path);
+        pretty_meta(file_name, probe)
     }
-
-    let source = Box::new(File::open(path)?);
-    let media_source_stream = MediaSourceStream::new(source, Default::default());
-
-    let format_opts = FormatOptions::default();
-    let meta_opts = MetadataOptions::default();
-
-    let probe = symphonia::default::get_probe().format(
-        &hint,
-        media_source_stream,
-        &format_opts,
-        &meta_opts,
-    )?;
-
-    let file_name = get_file_name(path);
-    pretty_meta(file_name, probe)
 }
 
 fn pretty_meta(file_name: String, probe: ProbeResult) -> Result<MediaMeta> {
@@ -42,7 +47,7 @@ fn pretty_meta(file_name: String, probe: ProbeResult) -> Result<MediaMeta> {
         let tags = meta.tags();
         tags.into_meta(file_name)
     } else {
-        Ok(Default::default())
+        Ok(MediaMeta::with_file_name(file_name))
     }
 }
 

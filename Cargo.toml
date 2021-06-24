@@ -10,6 +10,7 @@ chrono = { version = "0.4.19", features = ["serde"] }
 clap = { git = "https://github.com/clap-rs/clap/" }
 matroska = "0.7.0"
 mlua = { version = "0.5", features = ["lua54", "vendored", "serialize"] }
+once_cell = "1.8.0"
 serde = { version = "1.0.126", features = ["derive"] }
 serde_json = "1.0.64"
 serde_yaml = "0.8.17"

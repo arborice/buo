@@ -57,6 +57,12 @@ impl fmt::Display for MediaMeta {
 }
 
 impl MediaMeta {
+    pub fn with_file_name(file_name: String) -> Self {
+        Self {
+            file_name,
+            ..Default::default()
+        }
+    }
     pub fn to_detailed_string(&self) -> String {
         self.to_string() + self.extra.as_ref().unwrap_or(&"".into())
     }
