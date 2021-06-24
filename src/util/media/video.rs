@@ -2,11 +2,17 @@ use crate::prelude::*;
 use matroska::{Info, Matroska};
 use std::fs::File;
 
-use crate::util::traits::ExtCallback;
+use crate::util::{iso4::iso4_meta, traits::ExtCallback};
 pub struct VideoAnalyzer;
 
 impl ExtCallback for VideoAnalyzer {
-    fn try_get_meta(self, path: &std::path::Path) -> Result<MediaMeta> {
+    fn try_get_meta(&self, path: &std::path::Path) -> Result<MediaMeta> {
+        let ext = get_file_ext(path).unwrap();
+
+        if ext != "mkv" {
+            return iso4_meta(path);
+        }
+
         let source = Matroska::open(File::open(path)?)?;
         let meta = source.info;
 

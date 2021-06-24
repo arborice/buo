@@ -1,7 +1,7 @@
 use crate::prelude::*;
 
 pub trait ExtCallback: Send + Sync {
-    fn try_get_meta(self, path: &std::path::Path) -> Result<MediaMeta>;
+    fn try_get_meta(&self, path: &std::path::Path) -> Result<MediaMeta>;
 }
 
 // pub trait Bookmark {

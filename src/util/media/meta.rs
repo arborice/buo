@@ -34,15 +34,23 @@ impl fmt::Display for DateKind {
     }
 }
 
+macro_rules! append_metatag_if_not_empty {
+    ($out:expr, $metatag:expr, $($tokens:tt)*) => {
+        if !$metatag.is_empty() {
+            $out.push_str(&format!($($tokens)*, $metatag));
+        }
+    };
+}
+
 impl fmt::Display for MediaMeta {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut out = format!("file name: {}\n", &self.file_name);
         if let Some(ref title) = self.title {
-            out += &format!("title: {}\n", title);
+            append_metatag_if_not_empty!(&mut out, title, "title: {}\n");
         }
 
         if let Some(ref author) = self.author {
-            out += &format!("author: {}\n", author);
+            append_metatag_if_not_empty!(&mut out, author, "author: {}\n");
         }
 
         if let Some(ref duration) = self.duration {
@@ -50,7 +58,7 @@ impl fmt::Display for MediaMeta {
         }
 
         if let Some(ref date) = self.date {
-            out += &date.to_string();
+            append_metatag_if_not_empty!(&mut out, date.to_string(), "{}");
         }
         write!(f, "{}", out)
     }

@@ -7,14 +7,28 @@ pub mod prelude;
 use prelude::*;
 
 pub mod util;
+use util::media::dispatch_meta_fn;
 
 use clap::Clap;
 
 fn main() -> Result<()> {
-    let BuoArgs { target_files } = BuoArgs::parse();
+    let BuoArgs { mut target_files } = BuoArgs::parse();
 
-    for _ in target_files {
-        // println!("{}", audio_meta);
+    if target_files.is_empty() {
+        bail!("No target files provided!");
+    }
+
+    for target_file in target_files.drain(..) {
+        if let Some(dispatcher) = dispatch_meta_fn(&target_file) {
+            let file_meta = dispatcher.try_get_meta(&target_file)?;
+            println!("{}", file_meta);
+        } else {
+            let file_type = target_file
+                .extension()
+                .and_then(|ext| ext.to_str())
+                .unwrap_or("unknown");
+            println!("Filetype not supported: {}", file_type);
+        }
     }
     Ok(())
 }
