@@ -1,5 +1,6 @@
 # TODO
 
+- do something with readme in CodeAnalyzer output extras field
 - add support for custom lua scripts to handle custom bookmark imports
 - these scripts should resolve to safe Rust types to be stored via serde
 - benchmark zero-copy serde against possible alternatives like protobuf, rkyv

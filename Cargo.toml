@@ -16,6 +16,7 @@ serde_json = "1.0.64"
 serde_yaml = "0.8.17"
 strum = { version = "0.21.0", features = ["derive"] }
 symphonia = { version = "0.2.0", features = ["aac", "flac", "isomp4", "mp3", "wav", "ogg", "pcm"] }
+tokei = { version = "12.1.2", features = ["yaml"] }
 toml = "0.5.8"
 
 # [profile.release]

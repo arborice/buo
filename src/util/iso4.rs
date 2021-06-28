@@ -4,10 +4,11 @@ use std::{fs::File, path::Path};
 use symphonia::core::{
     formats::FormatOptions,
     io::MediaSourceStream,
-    meta::{MetadataOptions, StandardTagKey, Tag},
+    meta::{MetadataOptions, StandardTagKey, Tag, Value},
     probe::{Hint, ProbeResult},
 };
 
+#[inline]
 pub fn iso4_meta(path: &Path) -> Result<MediaMeta> {
     let mut hint = Hint::new();
 
@@ -29,20 +30,28 @@ pub fn iso4_meta(path: &Path) -> Result<MediaMeta> {
     )?;
 
     let file_name = get_file_name(path);
-    pretty_meta(file_name, probe)
+    iso4_media_meta(file_name, probe)
 }
 
-fn pretty_meta(file_name: String, probe: ProbeResult) -> Result<MediaMeta> {
+fn iso4_media_meta(file_name: String, probe: ProbeResult) -> Result<MediaMeta> {
     if let Some(meta) = probe
         .format
         .metadata()
         .current()
         .or_else(|| probe.metadata.current())
     {
-        let tags = meta.tags();
-        tags.into_meta(file_name)
+        meta.tags().into_meta(file_name)
     } else {
         Ok(MediaMeta::with_file_name(file_name))
+    }
+}
+
+/// Replaces the T inside the tag if the stringified value is not empty.
+/// The functor makes this a more flexible parser
+fn replace_tag_if_not_empty<T>(tag_value: &Value, tag: &mut Option<T>, functor: fn(String) -> T) {
+    let tag_value = tag_value.to_string();
+    if !tag_value.is_empty() {
+        tag.replace(functor(tag_value));
     }
 }
 
@@ -64,36 +73,37 @@ impl IntoMeta for &[Tag] {
             .map(|Tag { std_key, value, .. }| (std_key.unwrap(), value))
         {
             match key {
-                StandardTagKey::Artist => {
-                    author.replace(value.to_string());
-                }
+                StandardTagKey::Artist => replace_tag_if_not_empty(value, &mut author, |a| a),
                 StandardTagKey::AlbumArtist | StandardTagKey::Composer | StandardTagKey::Writer => {
                     if author.is_none() {
-                        author.replace(value.to_string());
+                        replace_tag_if_not_empty(value, &mut author, |a| a);
                     }
                 }
                 StandardTagKey::OriginalDate => {
-                    date.replace(DateKind::Sym(value.to_string()));
+                    replace_tag_if_not_empty(value, &mut date, DateKind::Sym)
                 }
-                StandardTagKey::TrackTitle => {
-                    title.replace(value.to_string());
-                }
+                StandardTagKey::TrackTitle => replace_tag_if_not_empty(value, &mut title, |t| t),
                 _ => {}
             }
         }
 
-        let extra = unknown
+        let maybe_extra = unknown
             .drain(..)
             .map(|Tag { key, value, .. }| format!("{}: {}", key, value))
             .collect::<Vec<_>>()
             .join("\n");
+        let extra = if maybe_extra.is_empty() {
+            None
+        } else {
+            Some(maybe_extra)
+        };
 
         Ok(MediaMeta {
             file_name,
             title,
             author,
             date,
-            extra: Some(extra),
+            extra,
             ..Default::default()
         })
     }

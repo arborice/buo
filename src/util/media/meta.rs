@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use crate::{prelude::*, util::dev::LangStats};
 use chrono::{DateTime, Utc};
 
 #[derive(Default, Serialize, Deserialize)]
@@ -8,6 +8,7 @@ pub struct MediaMeta {
     pub author: Option<String>,
     pub duration: Option<std::time::Duration>,
     pub date: Option<DateKind>,
+    pub stats: Option<Vec<LangStats>>,
     pub extra: Option<String>,
 }
 
@@ -45,6 +46,15 @@ macro_rules! append_metatag_if_not_empty {
 impl fmt::Display for MediaMeta {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut out = format!("file name: {}\n", &self.file_name);
+        if let Some(ref stats) = self.stats {
+            out += &stats
+                .iter()
+                .map(|s| s.to_string())
+                .collect::<Vec<_>>()
+                .join("\n");
+            return write!(f, "{}", out);
+        }
+
         if let Some(ref title) = self.title {
             append_metatag_if_not_empty!(&mut out, title, "title: {}\n");
         }
