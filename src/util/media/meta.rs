@@ -9,6 +9,10 @@ pub struct MediaMeta {
     pub duration: Option<std::time::Duration>,
     pub date: Option<DateKind>,
     pub stats: Option<Vec<LangStats>>,
+
+    // if this option is enabled and extra is not empty,
+    // display extra contents as well
+    pub display_extra: bool,
     pub extra: Option<String>,
 }
 
@@ -43,6 +47,7 @@ macro_rules! append_metatag_if_not_empty {
     };
 }
 
+use colored::Colorize;
 impl fmt::Display for MediaMeta {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut out = format!("file name: {}\n", &self.file_name);
@@ -82,6 +87,11 @@ impl MediaMeta {
         }
     }
     pub fn to_detailed_string(&self) -> String {
-        self.to_string() + self.extra.as_ref().unwrap_or(&"".into())
+        let out = self.to_string();
+        if let Some(ref extra) = self.extra {
+            out + "\n" + extra
+        } else {
+            out
+        }
     }
 }

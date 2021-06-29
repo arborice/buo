@@ -54,8 +54,6 @@ pub enum FileExt {
     Css,
     Dart,
     Java,
-
-    // Data
     Toml,
     Yaml,
     Yml,
@@ -99,12 +97,6 @@ impl FileExt {
         Self::Css,
         Self::Dart,
         Self::Java,
-    ];
-    pub fn is_dev(&self) -> bool {
-        Self::DEV.contains(self)
-    }
-
-    const DATA: &'static [Self] = &[
         Self::Json,
         Self::Toml,
         Self::Yml,
@@ -112,8 +104,8 @@ impl FileExt {
         Self::Ini,
         Self::Xml,
     ];
-    pub fn is_data(&self) -> bool {
-        Self::DATA.contains(self)
+    pub fn is_dev(&self) -> bool {
+        Self::DEV.contains(self)
     }
 }
 

@@ -5,13 +5,13 @@ use std::{
 };
 use tokei::{LanguageType, Report};
 
-const README: &str = "README.md";
+const README: &str = "README";
 
 pub fn get_readme_contents_if_exists(parent_path: &Path) -> Option<Result<String>> {
     match read_dir(parent_path) {
         Ok(dir_ents) => {
             for file in dir_ents.filter_map(|f| f.ok()) {
-                if file.file_name() == README {
+                if file.file_name().to_string_lossy().contains(README) {
                     let read_res = read_to_string(file.path()).map_err(|e| anyhow!(e));
                     return Some(read_res);
                 }

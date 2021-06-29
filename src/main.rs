@@ -21,7 +21,13 @@ fn main() -> Result<()> {
     for target_file in target_files.drain(..) {
         if let Some(dispatcher) = dispatch_meta_fn(&target_file) {
             let file_meta = dispatcher.try_get_meta(&target_file)?;
-            println!("{}", file_meta);
+
+            let display_value = if file_meta.display_extra {
+                file_meta.to_detailed_string()
+            } else {
+                file_meta.to_string()
+            };
+            println!("{}", display_value);
         } else {
             let file_type = target_file
                 .extension()
