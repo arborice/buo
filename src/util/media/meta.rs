@@ -41,13 +41,13 @@ impl fmt::Display for DateKind {
 
 macro_rules! append_metatag_if_not_empty {
     ($out:expr, $metatag:expr, $($tokens:tt)*) => {
+        use colored::Colorize;
         if !$metatag.is_empty() {
-            $out.push_str(&format!($($tokens)*, $metatag));
+            $out.push_str(&format!($($tokens)*, $metatag).green());
         }
     };
 }
 
-use colored::Colorize;
 impl fmt::Display for MediaMeta {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut out = format!("file name: {}\n", &self.file_name);
@@ -93,5 +93,10 @@ impl MediaMeta {
         } else {
             out
         }
+    }
+
+    pub fn as_json(&self) -> Result<String> {
+        let serialized = serde_json::to_string(self)?;
+        Ok(serialized)
     }
 }

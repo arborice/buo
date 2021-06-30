@@ -92,6 +92,7 @@ impl IntoMeta for &[Tag] {
             .map(|Tag { key, value, .. }| format!("{}: {}", key, value))
             .collect::<Vec<_>>()
             .join("\n");
+
         let extra = if maybe_extra.is_empty() {
             None
         } else {
