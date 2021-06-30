@@ -11,10 +11,19 @@ use util::media::dispatch_meta_fn;
 
 use clap::Clap;
 
+use util::ExportedJson;
+fn wrap_exported_json<T>(json: T, source_path: &std::path::Path) -> ExportedJson<T>
+where
+    T: Serialize + std::fmt::Display,
+{
+    ExportedJson::with_export_kind(json, source_path.is_dir())
+}
+
 fn main() -> Result<()> {
     let BuoArgs {
         mut target_files,
         json,
+        prettify,
     } = BuoArgs::parse();
 
     if target_files.is_empty() {
@@ -27,32 +36,39 @@ fn main() -> Result<()> {
 
     // all directories get same treatment, dynamic dispatch not needed
     if target_file.is_dir() {
-        if json {
-            let dir_meta_json = util::dirs::serialized_dir_meta(&target_file)?;
-            println!("{}", dir_meta_json);
-            return Ok(());
-        }
+        use util::dirs::*;
 
-        let dir_meta = util::dirs::get_dir_meta(&target_file)?;
-        println!("{}", dir_meta);
+        let dir_meta = get_dir_meta(&target_file)?;
+        let wrapped_meta = wrap_exported_json(dir_meta, &target_file);
+
+        let output = if prettify {
+            wrapped_meta.pretty_print()?
+        } else if json {
+            wrapped_meta.print()?
+        } else {
+            wrapped_meta.to_string()
+        };
+
+        println!("{}", output);
         return Ok(());
     }
 
     if let Some(dispatcher) = dispatch_meta_fn(&target_file) {
         // FileExtCallback found, dynamically dispatching
         let file_meta = dispatcher.try_get_meta(&target_file)?;
+        let wrapped_meta = wrap_exported_json(file_meta, &target_file);
 
-        let display_value = if json {
+        let output = if prettify {
+            // pretty print serialized json
+            wrapped_meta.pretty_print()?
+        } else if json {
             // json serialized
-            file_meta.as_json()?
-        } else if file_meta.display_extra {
-            // prints with unknown extra attrs
-            file_meta.to_detailed_string()
+            wrapped_meta.print()?
         } else {
-            file_meta.to_string()
+            wrapped_meta.to_string()
         };
 
-        println!("{}", display_value);
+        println!("{}", output);
     } else {
         // No filetype associated callback found
 

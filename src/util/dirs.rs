@@ -48,6 +48,8 @@ fn dirty_file_count(path: &Path, count: &mut u64) -> Result<()> {
     Ok(())
 }
 
+/// counts number of files recursively
+/// might be parallelized if all directories are filtered first?
 fn calc_num_files(path: &Path) -> Result<u64> {
     let mut file_count = 0;
     dirty_file_count(path, &mut file_count)?;
@@ -58,6 +60,8 @@ fn parse_dust_size(dust_stdout: &str) -> Option<String> {
     dust_stdout.split_whitespace().next().map(|s| s.to_string())
 }
 
+/// only temporary layout for DirMeta struct.
+/// right now depends on `dust`
 pub fn get_dir_meta(dir_path: &Path) -> Result<DirMeta<'_>> {
     assert!(dir_path.is_dir());
 
@@ -74,10 +78,4 @@ pub fn get_dir_meta(dir_path: &Path) -> Result<DirMeta<'_>> {
         disk_size,
         num_files,
     })
-}
-
-pub fn serialized_dir_meta(dir_path: &Path) -> Result<String> {
-    let dir_meta = get_dir_meta(dir_path)?;
-    let serialized = serde_json::to_string(&dir_meta)?;
-    Ok(serialized)
 }

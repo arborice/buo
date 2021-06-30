@@ -9,6 +9,7 @@ use crate::{
 use std::path::Path;
 use strum::IntoEnumIterator;
 
+#[derive(Clone, Copy)]
 pub struct FileExtCallback(FileExt, &'static dyn ExtCallback);
 
 struct DefaultAnalyzer;
@@ -25,12 +26,13 @@ impl Default for FileExtCallback {
     }
 }
 
-type DynExtMap<const LEN: usize> = [FileExtCallback; LEN];
+const LEN: usize = 32;
+type DynExtMap = [FileExtCallback; LEN];
 
 use once_cell::sync::Lazy;
 use tinyvec::{array_vec, ArrayVec};
-pub static EXT_FNS: Lazy<ArrayVec<DynExtMap<3>>> = Lazy::new(|| {
-    let mut tied = array_vec!(DynExtMap<3>);
+pub static EXT_FNS: Lazy<ArrayVec<DynExtMap>> = Lazy::new(|| {
+    let mut tied = array_vec!(DynExtMap);
 
     static AA: &audio::AudioAnalyzer = &audio::AudioAnalyzer;
     static CA: &CodeAnalyzer = &CodeAnalyzer;

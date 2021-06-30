@@ -86,17 +86,4 @@ impl MediaMeta {
             ..Default::default()
         }
     }
-    pub fn to_detailed_string(&self) -> String {
-        let out = self.to_string();
-        if let Some(ref extra) = self.extra {
-            out + "\n" + extra
-        } else {
-            out
-        }
-    }
-
-    pub fn as_json(&self) -> Result<String> {
-        let serialized = serde_json::to_string(self)?;
-        Ok(serialized)
-    }
 }
