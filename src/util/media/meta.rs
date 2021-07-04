@@ -7,6 +7,7 @@ pub struct MediaMeta {
     pub title: Option<String>,
     pub author: Option<String>,
     pub duration: Option<std::time::Duration>,
+    #[serde(rename = "media_date")]
     pub date: Option<DateKind>,
     pub stats: Option<Vec<LangStats>>,
 

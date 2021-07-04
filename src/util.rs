@@ -7,39 +7,53 @@ pub mod text;
 pub mod traits;
 
 use crate::prelude::*;
+use chrono::{DateTime, Utc};
 use std::fmt;
 
 #[derive(Serialize, strum::Display)]
-#[serde(rename_all = "lowercase")]
 pub enum ExportKind {
     Dir,
     File,
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ExportedJson<T>
 where
     T: Serialize + fmt::Display,
 {
-    r#type: ExportKind,
+    file_type: ExportKind,
+    date: DateTime<Utc>,
     #[serde(flatten)]
     inner: T,
+}
+
+use media::meta::MediaMeta;
+impl From<MediaMeta> for ExportedJson<MediaMeta> {
+    fn from(media_meta: MediaMeta) -> Self {
+        ExportedJson {
+            file_type: ExportKind::File,
+            date: Utc::now(),
+            inner: media_meta,
+        }
+    }
+}
+
+use dirs::DirMeta;
+impl<'dir> From<DirMeta<'dir>> for ExportedJson<DirMeta<'dir>> {
+    fn from(dir_meta: DirMeta<'dir>) -> Self {
+        ExportedJson {
+            file_type: ExportKind::Dir,
+            date: Utc::now(),
+            inner: dir_meta,
+        }
+    }
 }
 
 impl<T> ExportedJson<T>
 where
     T: Serialize + fmt::Display,
 {
-    pub fn with_export_kind(inner: T, is_dir: bool) -> Self {
-        let r#type = if is_dir {
-            ExportKind::Dir
-        } else {
-            ExportKind::File
-        };
-
-        Self { r#type, inner }
-    }
-
     pub fn pretty_print(&self) -> Result<String> {
         Ok(serde_json::to_string_pretty(self)?)
     }
@@ -54,6 +68,6 @@ where
     T: Serialize + fmt::Display,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "type: {}\n{}", self.r#type, self.inner)
+        write!(f, "type: {}\n{}", self.file_type, self.inner)
     }
 }

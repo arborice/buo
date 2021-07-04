@@ -3,21 +3,14 @@ mod cfg;
 mod cli;
 use cli::types::BuoArgs;
 
-pub mod prelude;
+mod prelude;
 use prelude::*;
 
-pub mod util;
+mod util;
 use util::media::dispatch_meta_fn;
 
 use clap::Clap;
-
 use util::ExportedJson;
-fn wrap_exported_json<T>(json: T, source_path: &std::path::Path) -> ExportedJson<T>
-where
-    T: Serialize + std::fmt::Display,
-{
-    ExportedJson::with_export_kind(json, source_path.is_dir())
-}
 
 fn main() -> Result<()> {
     let BuoArgs {
@@ -39,7 +32,7 @@ fn main() -> Result<()> {
         use util::dirs::*;
 
         let dir_meta = get_dir_meta(&target_file)?;
-        let wrapped_meta = wrap_exported_json(dir_meta, &target_file);
+        let wrapped_meta: ExportedJson<_> = dir_meta.into();
 
         let output = if prettify {
             wrapped_meta.pretty_print()?
@@ -56,7 +49,7 @@ fn main() -> Result<()> {
     if let Some(dispatcher) = dispatch_meta_fn(&target_file) {
         // FileExtCallback found, dynamically dispatching
         let file_meta = dispatcher.try_get_meta(&target_file)?;
-        let wrapped_meta = wrap_exported_json(file_meta, &target_file);
+        let wrapped_meta: ExportedJson<_> = file_meta.into();
 
         let output = if prettify {
             // pretty print serialized json

@@ -4,6 +4,9 @@ version = "0.1.0"
 authors = ["hal9000 <hal@9000.com>"]
 edition = "2018"
 
+[lib]
+path = 'src/lib.rs'
+
 [dependencies]
 anyhow = "1.0.41"
 chrono = { version = "0.4.19", features = ["serde"] }
