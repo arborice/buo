@@ -18,6 +18,7 @@ pub struct MediaMeta {
 }
 
 #[derive(Serialize, Deserialize)]
+#[serde(untagged)]
 pub enum DateKind {
     Chrono(DateTime<Utc>),
     Sym(String),

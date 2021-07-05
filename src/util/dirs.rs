@@ -1,18 +1,21 @@
 use crate::prelude::*;
-use std::{path::Path, process::Command};
+use std::{
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 /// NOT FINAL
 #[derive(Serialize)]
-pub struct DirMeta<'path> {
-    path: &'path Path,
+pub struct DirMeta {
+    pub path: PathBuf,
     // will eventually be u64, but right now it is the output from dust subprocess
-    disk_size: String,
+    pub disk_size: String,
     // this may be able to be parallelized
-    num_files: u64,
+    pub num_files: u64,
 }
 
 use std::fmt;
-impl<'path> fmt::Display for DirMeta<'path> {
+impl fmt::Display for DirMeta {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -62,7 +65,7 @@ fn parse_dust_size(dust_stdout: &str) -> Option<String> {
 
 /// only temporary layout for DirMeta struct.
 /// right now depends on `dust`
-pub fn get_dir_meta(dir_path: &Path) -> Result<DirMeta<'_>> {
+pub fn get_dir_meta(dir_path: &Path) -> Result<DirMeta> {
     assert!(dir_path.is_dir());
 
     let dust_stdout = get_dust_output(dir_path)?;
@@ -74,7 +77,7 @@ pub fn get_dir_meta(dir_path: &Path) -> Result<DirMeta<'_>> {
     let num_files = calc_num_files(dir_path)?;
 
     Ok(DirMeta {
-        path: dir_path,
+        path: dir_path.to_path_buf(),
         disk_size,
         num_files,
     })

@@ -12,7 +12,7 @@ pub fn buo_media_query(query: &Path) -> anyhow::Result<MediaMeta> {
         .and_then(|dispatcher| dispatcher.try_get_meta(query))
 }
 
-pub fn buo_dir_meta(query: &Path) -> anyhow::Result<DirMeta<'_>> {
+pub fn buo_dir_meta(query: &Path) -> anyhow::Result<DirMeta> {
     assert!(query.is_dir());
     get_dir_meta(query)
 }

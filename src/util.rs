@@ -40,8 +40,8 @@ impl From<MediaMeta> for ExportedJson<MediaMeta> {
 }
 
 use dirs::DirMeta;
-impl<'dir> From<DirMeta<'dir>> for ExportedJson<DirMeta<'dir>> {
-    fn from(dir_meta: DirMeta<'dir>) -> Self {
+impl From<DirMeta> for ExportedJson<DirMeta> {
+    fn from(dir_meta: DirMeta) -> Self {
         ExportedJson {
             file_type: ExportKind::Dir,
             date: Utc::now(),
