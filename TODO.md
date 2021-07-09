@@ -1,5 +1,8 @@
 # TODO
 
+- setup caching architecture + strategy
+- serialize cache for easy ffi
+
 - add colored output to cli for better parsing
 - add style schema for lua scripts + gui bindings
 - ~~do something with readme in CodeAnalyzer output extras field~~

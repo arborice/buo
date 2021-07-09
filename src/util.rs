@@ -1,3 +1,4 @@
+pub mod cache;
 pub mod dev;
 pub mod dirs;
 pub mod file_types;

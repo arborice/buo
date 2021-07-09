@@ -1,4 +1,7 @@
-pub use crate::util::media::meta::{DateKind, IntoMeta, MediaMeta};
+pub use crate::util::{
+    dirs::DirMeta,
+    media::meta::{DateKind, IntoMeta, MediaMeta},
+};
 pub use anyhow::{anyhow, bail, Result};
 pub use serde::{Deserialize, Serialize};
 

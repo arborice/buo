@@ -1,7 +1,7 @@
 use crate::{prelude::*, util::dev::LangStats};
 use chrono::{DateTime, Utc};
 
-#[derive(Default, Serialize, Deserialize)]
+#[derive(Default, Clone, Serialize, Deserialize)]
 pub struct MediaMeta {
     pub file_name: String,
     pub title: Option<String>,
@@ -17,7 +17,7 @@ pub struct MediaMeta {
     pub extra: Option<String>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum DateKind {
     Chrono(DateTime<Utc>),
