@@ -36,10 +36,7 @@ impl HotCache {
     pub fn batch_query<P: AsRef<str>>(&self, queries: &Vec<P>) -> Option<Vec<&MediaMeta>> {
         let res_indexes: Vec<usize> = queries
             .iter()
-            .filter_map(|q| match self.cache_lookup.get(q.as_ref()) {
-                Some(ix) => Some(*ix),
-                None => None,
-            })
+            .filter_map(|q| self.cache_lookup.get(q.as_ref()).map(|ix| *ix))
             .collect();
 
         if res_indexes.is_empty() {
@@ -63,7 +60,7 @@ impl HotCache {
 }
 
 use std::fs::{read, write};
-pub(crate) fn commit_cache_to_path<Meta: Serialize>(path: &Path, cache: HotCache) -> Result<()> {
+pub(crate) fn commit_cache_to_path(path: &Path, cache: HotCache) -> Result<()> {
     let serialized: Vec<u8> = bincode::serialize(&cache)?;
     write(path, serialized)?;
     Ok(())
