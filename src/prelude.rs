@@ -1,6 +1,8 @@
 pub use crate::util::{
     dirs::DirMeta,
-    media::meta::{DateKind, IntoMeta, MediaMeta},
+    file_types::FileExt,
+    media::meta::{DateKind, MediaMeta},
+    traits::*,
 };
 pub use anyhow::{anyhow, bail, Result};
 pub use serde::{Deserialize, Serialize};

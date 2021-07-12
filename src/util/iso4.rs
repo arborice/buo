@@ -8,8 +8,8 @@ use symphonia::core::{
     probe::{Hint, ProbeResult},
 };
 
-#[inline]
-pub fn iso4_meta(path: &Path) -> Result<MediaMeta> {
+#[inline(always)]
+pub fn iso4_meta(path: &Path) -> Result<Option<MediaMeta>> {
     let mut hint = Hint::new();
 
     if let Some(ext) = path.extension().and_then(|ext| ext.to_str()) {
@@ -30,10 +30,10 @@ pub fn iso4_meta(path: &Path) -> Result<MediaMeta> {
     )?;
 
     let file_name = get_file_name(path);
-    iso4_media_meta(file_name, probe)
+    Ok(iso4_media_meta(file_name, probe))
 }
 
-fn iso4_media_meta(file_name: String, probe: ProbeResult) -> Result<MediaMeta> {
+fn iso4_media_meta(file_name: String, probe: ProbeResult) -> Option<MediaMeta> {
     if let Some(meta) = probe
         .format
         .metadata()
@@ -42,7 +42,7 @@ fn iso4_media_meta(file_name: String, probe: ProbeResult) -> Result<MediaMeta> {
     {
         meta.tags().into_meta(file_name)
     } else {
-        Ok(MediaMeta::with_file_name(file_name))
+        Some(MediaMeta::with_file_name(file_name))
     }
 }
 
@@ -56,9 +56,9 @@ fn replace_tag_if_not_empty<T>(tag_value: &Value, tag: &mut Option<T>, functor: 
 }
 
 impl IntoMeta for &[Tag] {
-    fn into_meta(self, file_name: String) -> Result<MediaMeta> {
+    fn into_meta(self, file_name: String) -> Option<MediaMeta> {
         if self.is_empty() {
-            return Err(anyhow!("No metadata available!"));
+            return None;
         }
 
         let (mut known, mut unknown): (Vec<_>, Vec<_>) =
@@ -99,7 +99,7 @@ impl IntoMeta for &[Tag] {
             Some(maybe_extra)
         };
 
-        Ok(MediaMeta {
+        Some(MediaMeta {
             file_name,
             title,
             author,

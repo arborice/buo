@@ -1,14 +1,12 @@
 use crate::prelude::*;
-use std::{
-    path::{Path, PathBuf},
-    process::Command,
-};
+use std::path::{Path, PathBuf};
 
 /// NOT FINAL
 #[derive(Serialize)]
 pub struct DirMeta {
     pub path: PathBuf,
     // will eventually be u64, but right now it is the output from dust subprocess
+    #[cfg(feature = "dust")]
     pub disk_size: String,
     // this may be able to be parallelized
     pub num_files: u64,
@@ -16,6 +14,7 @@ pub struct DirMeta {
 
 use std::fmt;
 impl fmt::Display for DirMeta {
+    #[cfg(feature = "dust")]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -25,12 +24,23 @@ impl fmt::Display for DirMeta {
             &self.disk_size
         )
     }
+
+    #[cfg(not(feature = "dust"))]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "path: {}\n{} files",
+            self.path.display(),
+            &self.num_files,
+        )
+    }
 }
 
 /// Temporary function to calculate the size of a directory from dust binary.
 /// `dust` has no lib, so will implement here later w/ rayon acceleration
+#[cfg(feature = "dust")]
 fn get_dust_output(path: &Path) -> Result<String> {
-    let dust_stdout = Command::new("dust")
+    let dust_stdout = std::process::Command::new("dust")
         .args(&["-bcrn", "1"])
         .arg(path)
         .output()?;
@@ -65,6 +75,7 @@ fn parse_dust_size(dust_stdout: &str) -> Option<String> {
 
 /// only temporary layout for DirMeta struct.
 /// right now depends on `dust`
+#[cfg(feature = "dust")]
 pub fn get_dir_meta(dir_path: &Path) -> Result<DirMeta> {
     assert!(dir_path.is_dir());
 
@@ -79,6 +90,17 @@ pub fn get_dir_meta(dir_path: &Path) -> Result<DirMeta> {
     Ok(DirMeta {
         path: dir_path.to_path_buf(),
         disk_size,
+        num_files,
+    })
+}
+
+#[cfg(not(feature = "dust"))]
+pub fn get_dir_meta(dir_path: &Path) -> Result<DirMeta> {
+    assert!(dir_path.is_dir());
+    let num_files = calc_num_files(dir_path)?;
+
+    Ok(DirMeta {
+        path: dir_path.to_path_buf(),
         num_files,
     })
 }

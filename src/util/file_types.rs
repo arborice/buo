@@ -1,12 +1,6 @@
 use serde::Deserialize;
 use strum::{AsRefStr, EnumIter, IntoEnumIterator};
 
-#[derive(Debug, Deserialize)]
-pub struct NodeMeta<'name> {
-    pub ext: FileExt,
-    pub file_name: &'name str,
-}
-
 #[derive(AsRefStr, Copy, Clone, Debug, Deserialize, EnumIter, Hash, PartialEq, Eq)]
 #[strum(serialize_all = "lowercase")]
 pub enum FileExt {
@@ -14,8 +8,10 @@ pub enum FileExt {
     Invalid,
 
     // Audio
+    Flac,
     Mp3,
     M4a,
+    Ogg,
     Wav,
 
     // Video
@@ -62,13 +58,14 @@ pub enum FileExt {
     Xml,
 }
 
+#[allow(unused)]
 impl FileExt {
     const TEXT: &'static [Self] = &[Self::Txt, Self::Md, Self::Docx, Self::Odf];
     pub fn is_text(&self) -> bool {
         Self::TEXT.contains(self)
     }
 
-    const AUDIO: &'static [Self] = &[Self::Mp3, Self::M4a, Self::Wav];
+    const AUDIO: &'static [Self] = &[Self::Flac, Self::Mp3, Self::M4a, Self::Ogg, Self::Wav];
     pub fn is_audio(&self) -> bool {
         Self::AUDIO.contains(self)
     }
@@ -106,6 +103,21 @@ impl FileExt {
     ];
     pub fn is_dev(&self) -> bool {
         Self::DEV.contains(self)
+    }
+
+    pub fn is_iso4(&self) -> bool {
+        use FileExt::*;
+        match self {
+            Mp3 | Mp4 | M4v | M4a | Wav | Flac | Ogg => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_matroska(&self) -> bool {
+        match self {
+            Self::Mkv | Self::Webm => true,
+            _ => false,
+        }
     }
 }
 

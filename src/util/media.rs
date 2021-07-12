@@ -14,7 +14,7 @@ pub struct FileExtCallback(FileExt, &'static dyn ExtCallback);
 
 struct DefaultAnalyzer;
 impl ExtCallback for DefaultAnalyzer {
-    fn try_get_meta(&self, _path: &Path) -> Result<meta::MediaMeta> {
+    fn try_get_meta(&self, _path: &Path) -> Result<Option<MediaMeta>> {
         unreachable!("dummy impl")
     }
 }

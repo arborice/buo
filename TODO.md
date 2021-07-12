@@ -1,14 +1,14 @@
 # TODO
 
 - setup caching architecture + strategy
-- serialize cache for easy ffi
+- ~~serialize cache for easy ffi~~
 
 - add colored output to cli for better parsing
-- add style schema for lua scripts + gui bindings
+- add style schema for lua (WASM?) scripts + gui bindings
 - ~~do something with readme in CodeAnalyzer output extras field~~
-- add support for custom lua scripts to handle custom bookmark imports
-- these scripts should resolve to safe Rust types to be stored via serde
-- benchmark zero-copy serde against possible alternatives like protobuf, rkyv
+- add support for custom lua (WASM?) scripts to handle custom bookmark imports
+- these scripts should resolve to safe Rust types to be serde compatible
+- ~~benchmark zero-copy serde against possible alternatives like protobuf, rkyv~~
 - ~~add dependencies for parsing DATA filetypes~~
 - prioritize loading metadata for TEXT, AUDIO, DEV, ~~DATA~~ with VIDEO last
 - potentially add thumbnail support

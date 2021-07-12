@@ -5,7 +5,7 @@ pub use util::{dirs::DirMeta, media::meta::MediaMeta, ExportKind, ExportedJson};
 use std::path::Path;
 use util::{dirs::get_dir_meta, media::dispatch_meta_fn};
 
-pub fn buo_media_query(query: &Path) -> anyhow::Result<MediaMeta> {
+pub fn buo_media_query(query: &Path) -> anyhow::Result<Option<MediaMeta>> {
     assert!(query.is_file());
     dispatch_meta_fn(query)
         .ok_or_else(|| anyhow::anyhow!("Not a supported file type"))

@@ -2,6 +2,7 @@ use clap::Clap;
 use std::path::PathBuf;
 
 #[derive(Clap)]
+// #[clap(color)] figure out the clap flag for colorized output, maybe AppSettings
 pub struct BuoArgs {
     /// output serialized json
     #[clap(short, long)]

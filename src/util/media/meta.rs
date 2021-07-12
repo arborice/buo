@@ -24,10 +24,6 @@ pub enum DateKind {
     Sym(String),
 }
 
-pub trait IntoMeta {
-    fn into_meta(self, file_name: String) -> Result<MediaMeta>;
-}
-
 use std::fmt;
 impl fmt::Display for DateKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

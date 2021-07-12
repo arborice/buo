@@ -5,7 +5,7 @@ use crate::{
 pub struct AudioAnalyzer;
 
 impl ExtCallback for AudioAnalyzer {
-    fn try_get_meta(&self, path: &std::path::Path) -> Result<MediaMeta> {
+    fn try_get_meta(&self, path: &std::path::Path) -> Result<Option<MediaMeta>> {
         iso4_meta(path)
     }
 }
