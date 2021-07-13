@@ -36,14 +36,11 @@ impl IntoMeta for Info {
             ..
         } = self;
 
-        if title
+        // return early if no fields present
+        let _no_avail_meta = title
             .as_ref()
             .and(duration.as_ref())
-            .and(date_utc.as_ref())
-            .is_none()
-        {
-            return None;
-        }
+            .and(date_utc.as_ref())?;
 
         Some(MediaMeta {
             file_name,

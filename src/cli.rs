@@ -33,7 +33,7 @@ pub fn dispatch_from_cli(
     BuoArgs {
         json,
         prettify,
-        mut target_files,
+        target_files,
     }: BuoArgs,
 ) -> Result<()> {
     for target_file in target_files {

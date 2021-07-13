@@ -11,7 +11,7 @@ pub(crate) struct HotCache {
 impl HotCache {
     pub fn get(&self, query: &str) -> Option<&MediaMeta> {
         let lookup_index = self.cache_lookup.get(query)?;
-        self.entries.iter().nth(*lookup_index).map(|e| e.as_ref())?
+        self.entries.get(*lookup_index).map(|e| e.as_ref())?
     }
 
     pub fn insert(&mut self, key: &str, entry: MediaMeta) -> Result<()> {
@@ -33,10 +33,10 @@ impl HotCache {
         }
     }
 
-    pub fn batch_query<P: AsRef<str>>(&self, queries: &Vec<P>) -> Option<Vec<&MediaMeta>> {
+    pub fn batch_query<P: AsRef<str>>(&self, queries: &[P]) -> Option<Vec<&MediaMeta>> {
         let res_indexes: Vec<usize> = queries
             .iter()
-            .filter_map(|q| self.cache_lookup.get(q.as_ref()).map(|ix| *ix))
+            .filter_map(|q| self.cache_lookup.get(q.as_ref()).copied())
             .collect();
 
         if res_indexes.is_empty() {

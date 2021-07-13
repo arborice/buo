@@ -107,17 +107,11 @@ impl FileExt {
 
     pub fn is_iso4(&self) -> bool {
         use FileExt::*;
-        match self {
-            Mp3 | Mp4 | M4v | M4a | Wav | Flac | Ogg => true,
-            _ => false,
-        }
+        matches!(self, Mp3 | Mp4 | M4v | M4a | Wav | Flac | Ogg)
     }
 
     pub fn is_matroska(&self) -> bool {
-        match self {
-            Self::Mkv | Self::Webm => true,
-            _ => false,
-        }
+        matches!(self, Self::Mkv | Self::Webm)
     }
 }
 
