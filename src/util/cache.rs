@@ -1,8 +1,8 @@
 use crate::prelude::*;
 use std::{collections::HashMap, path::Path};
 
-#[derive(Deserialize, Serialize)]
-pub(crate) struct HotCache {
+#[derive(Default, Deserialize, Serialize)]
+pub struct HotCache {
     cache_lookup: HashMap<String, usize>,
     last_inserted_index: usize,
     entries: Vec<Option<MediaMeta>>,

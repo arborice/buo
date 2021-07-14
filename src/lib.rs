@@ -3,7 +3,11 @@ pub(crate) mod util;
 pub use util::{dirs::DirMeta, media::meta::MediaMeta, ExportKind, ExportedJson};
 
 use std::path::Path;
-use util::{dirs::get_dir_meta, media::dispatch_meta_fn};
+use util::{
+    cache::{commit_cache_to_path, retrieve_cache, HotCache},
+    dirs::get_dir_meta,
+    media::dispatch_meta_fn,
+};
 
 pub fn buo_media_query(query: &Path) -> anyhow::Result<Option<MediaMeta>> {
     assert!(query.is_file());
@@ -15,4 +19,18 @@ pub fn buo_media_query(query: &Path) -> anyhow::Result<Option<MediaMeta>> {
 pub fn buo_dir_meta(query: &Path) -> anyhow::Result<DirMeta> {
     assert!(query.is_dir());
     get_dir_meta(query)
+}
+
+pub fn retrieve_cache_or_try_init(path: &Path) -> anyhow::Result<Option<HotCache>> {
+    let try_fetch_existing = retrieve_cache(path);
+    if path.exists() {
+        let existing = try_fetch_existing?;
+        Ok(Some(existing))
+    } else {
+        Ok(None)
+    }
+}
+
+pub fn force_init_cache(path: &Path) -> anyhow::Result<()> {
+    commit_cache_to_path(path, HotCache::default())
 }

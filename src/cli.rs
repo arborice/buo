@@ -19,9 +19,9 @@ where
     Meta: Serialize + std::fmt::Display,
 {
     let formatted_output = if prettify {
-        meta.pretty_print()?
+        meta.as_pretty_json()?
     } else if json {
-        meta.print()?
+        meta.as_json()?
     } else {
         meta.to_string()
     };

@@ -55,11 +55,11 @@ impl<T> ExportedJson<T>
 where
     T: Serialize + fmt::Display,
 {
-    pub fn pretty_print(&self) -> Result<String> {
+    pub fn as_pretty_json(&self) -> Result<String> {
         Ok(serde_json::to_string_pretty(self)?)
     }
 
-    pub fn print(&self) -> Result<String> {
+    pub fn as_json(&self) -> Result<String> {
         Ok(serde_json::to_string(self)?)
     }
 }

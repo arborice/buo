@@ -1,20 +1,16 @@
 use crate::prelude::*;
 use std::path::{Path, PathBuf};
 
-/// NOT FINAL
 #[derive(Serialize)]
 pub struct DirMeta {
     pub path: PathBuf,
-    // will eventually be u64, but right now it is the output from dust subprocess
-    #[cfg(feature = "dust")]
-    pub disk_size: String,
+    pub disk_size: u64,
     // this may be able to be parallelized
     pub num_files: u64,
 }
 
 use std::fmt;
 impl fmt::Display for DirMeta {
-    #[cfg(feature = "dust")]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -24,83 +20,62 @@ impl fmt::Display for DirMeta {
             &self.disk_size
         )
     }
-
-    #[cfg(not(feature = "dust"))]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "path: {}\n{} files",
-            self.path.display(),
-            &self.num_files,
-        )
-    }
 }
 
-/// Temporary function to calculate the size of a directory from dust binary.
-/// `dust` has no lib, so will implement here later w/ rayon acceleration
-#[cfg(feature = "dust")]
-fn get_dust_output(path: &Path) -> Result<String> {
-    let dust_stdout = std::process::Command::new("dust")
-        .args(&["-bcrn", "1"])
-        .arg(path)
-        .output()?;
-
-    let stringified_output = String::from_utf8(dust_stdout.stdout)?;
-    Ok(stringified_output)
+#[derive(Default)]
+struct DirWalker {
+    total: u64,
+    dir_ent_count: u64,
+    io_err_count: u16,
+    filesize_err_count: u16,
 }
 
+use filesize::PathExt;
 use std::fs::read_dir;
-fn dirty_file_count(path: &Path, count: &mut u64) -> Result<()> {
-    for file in read_dir(path)? {
-        let path = file?.path();
-        if path.is_dir() {
-            dirty_file_count(&path, count)?;
+fn recurse_total_dir_size(dir_path: &Path, walk_results: &mut DirWalker) {
+    if let Ok(walker) = read_dir(dir_path) {
+        for dir_ent in walker {
+            if let Ok((path, Ok(meta))) = dir_ent.map(|e| (e.path(), e.metadata())) {
+                if path.is_dir() {
+                    recurse_total_dir_size(&path, walk_results);
+                }
+
+                if let Ok(file_disk_size) = path.size_on_disk_fast(&meta) {
+                    walk_results.total += file_disk_size;
+                    walk_results.dir_ent_count += 1;
+                } else {
+                    walk_results.filesize_err_count += 1;
+                }
+            } else {
+                walk_results.io_err_count += 1;
+            }
         }
-        *count += 1;
+    } else {
+        walk_results.io_err_count += 1;
     }
-    Ok(())
-}
-
-/// counts number of files recursively
-/// might be parallelized if all directories are filtered first?
-fn calc_num_files(path: &Path) -> Result<u64> {
-    let mut file_count = 0;
-    dirty_file_count(path, &mut file_count)?;
-    Ok(file_count)
-}
-
-fn parse_dust_size(dust_stdout: &str) -> Option<String> {
-    dust_stdout.split_whitespace().next().map(|s| s.to_string())
 }
 
 /// only temporary layout for DirMeta struct.
-/// right now depends on `dust`
-#[cfg(feature = "dust")]
 pub fn get_dir_meta(dir_path: &Path) -> Result<DirMeta> {
     assert!(dir_path.is_dir());
 
-    let dust_stdout = get_dust_output(dir_path)?;
-    let disk_size = parse_dust_size(&dust_stdout).ok_or_else(|| {
-        dbg!("invalid output:\n{}\n", dust_stdout);
-        anyhow!("Dust parsing error!")
-    })?;
+    let mut dir_walker = DirWalker::default();
+    recurse_total_dir_size(dir_path, &mut dir_walker);
 
-    let num_files = calc_num_files(dir_path)?;
+    if dir_walker.io_err_count > 0 {
+        eprintln!("{} io errors encountered.", dir_walker.io_err_count);
+    }
 
-    Ok(DirMeta {
-        path: dir_path.to_path_buf(),
-        disk_size,
-        num_files,
-    })
-}
-
-#[cfg(not(feature = "dust"))]
-pub fn get_dir_meta(dir_path: &Path) -> Result<DirMeta> {
-    assert!(dir_path.is_dir());
-    let num_files = calc_num_files(dir_path)?;
+    if dir_walker.filesize_err_count > 0 {
+        eprintln!(
+            "{} filesize crate errors encountered.",
+            dir_walker.filesize_err_count
+        );
+    }
 
     Ok(DirMeta {
         path: dir_path.to_path_buf(),
-        num_files,
+        disk_size: dir_walker.total,
+        num_files: dir_walker.dir_ent_count,
     })
 }
