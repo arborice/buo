@@ -93,11 +93,7 @@ impl IntoMeta for &[Tag] {
             .collect::<Vec<_>>()
             .join("\n");
 
-        let extra = if maybe_extra.is_empty() {
-            None
-        } else {
-            Some(maybe_extra)
-        };
+        let extra = maybe_extra.is_empty().opt_not(maybe_extra);
 
         Some(MediaMeta {
             file_name,

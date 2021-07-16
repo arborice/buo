@@ -5,8 +5,15 @@ use std::path::{Path, PathBuf};
 pub struct DirMeta {
     pub path: PathBuf,
     pub disk_size: u64,
-    // this may be able to be parallelized
     pub num_files: u64,
+}
+
+impl DirMeta {
+    pub fn human_readable_disk_size(&self) -> String {
+        byte_unit::Byte::from(self.disk_size)
+            .get_appropriate_unit(false)
+            .to_string()
+    }
 }
 
 use std::fmt;

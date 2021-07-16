@@ -1,8 +1,10 @@
 use crate::{prelude::*, util::dev::LangStats};
 use chrono::{DateTime, Utc};
+use std::path::{Path, PathBuf};
 
 #[derive(Default, Clone, Serialize, Deserialize)]
 pub struct MediaMeta {
+    pub file_path: PathBuf,
     pub file_name: String,
     pub title: Option<String>,
     pub author: Option<String>,
@@ -15,6 +17,18 @@ pub struct MediaMeta {
     // display extra contents as well
     pub display_extra: bool,
     pub extra: Option<String>,
+}
+
+impl PartialEq<MediaMeta> for PathBuf {
+    fn eq(&self, rh: &MediaMeta) -> bool {
+        self.eq(&rh.file_path)
+    }
+}
+
+impl PartialEq<MediaMeta> for &Path {
+    fn eq(&self, rh: &MediaMeta) -> bool {
+        self.eq(&rh.file_path)
+    }
 }
 
 #[derive(Clone, Serialize, Deserialize)]

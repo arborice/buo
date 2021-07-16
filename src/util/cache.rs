@@ -1,73 +1,63 @@
+pub mod live;
+pub mod permanent;
+
+pub use permanent::{commit_cache_to_path, retrieve_cache, HotCache};
+
 use crate::prelude::*;
-use std::{collections::HashMap, path::Path};
+use std::{
+    fs::read_dir,
+    path::{Path, PathBuf},
+};
 
-#[derive(Default, Deserialize, Serialize)]
-pub struct HotCache {
-    cache_lookup: HashMap<String, usize>,
-    last_inserted_index: usize,
-    entries: Vec<Option<MediaMeta>>,
-}
+/// Recursively accrues paths validated by a closure, and fails eagerly
+fn acc_valid_paths(
+    dir_path: &Path,
+    acc: &mut Vec<PathBuf>,
+    len_limit: &mut usize,
+    validator: impl Fn(&Path) -> bool,
+) -> Result<()> {
+    for ent in read_dir(dir_path)? {
+        let path = ent?.path();
 
-impl HotCache {
-    pub fn get(&self, query: &str) -> Option<&MediaMeta> {
-        let lookup_index = self.cache_lookup.get(query)?;
-        self.entries.get(*lookup_index).map(|e| e.as_ref())?
-    }
-
-    pub fn insert(&mut self, key: &str, entry: MediaMeta) -> Result<()> {
-        if !self.cache_lookup.contains_key(key) {
-            self.last_inserted_index += 1;
-            self.entries[self.last_inserted_index].replace(entry);
-            Ok(())
-        } else {
-            bail!("failed insertion")
-        }
-    }
-
-    fn resize(&mut self) {
-        if self.last_inserted_index == self.entries.len() {
-            self.entries.reserve_exact(200);
-            for _ in 0..200 {
-                self.entries.push(None);
-            }
-        }
-    }
-
-    pub fn batch_query<P: AsRef<str>>(&self, queries: &[P]) -> Option<Vec<&MediaMeta>> {
-        let res_indexes: Vec<usize> = queries
-            .iter()
-            .filter_map(|q| self.cache_lookup.get(q.as_ref()).copied())
-            .collect();
-
-        if res_indexes.is_empty() {
-            return None;
+        if path.is_dir() {
+            acc_valid_paths(&path, acc, len_limit, &validator)?;
         }
 
-        let batch_results = self
-            .entries
-            .iter()
-            .enumerate()
-            .filter_map(|(ix, meta)| {
-                if res_indexes.contains(&ix) {
-                    meta.as_ref()
-                } else {
-                    None
-                }
-            })
-            .collect();
-        Some(batch_results)
-    }
-}
+        if validator(&path) {
+            *len_limit -= 1;
+            acc.push(path);
+        }
 
-use std::fs::{read, write};
-pub(crate) fn commit_cache_to_path(path: &Path, cache: HotCache) -> Result<()> {
-    let serialized: Vec<u8> = bincode::serialize(&cache)?;
-    write(path, serialized)?;
+        if *len_limit == 0 {
+            return Ok(());
+        }
+    }
     Ok(())
 }
 
-pub(crate) fn retrieve_cache(path: &Path) -> Result<HotCache> {
-    let byte_contents = read(path)?;
-    let deserialized: HotCache = bincode::deserialize(&byte_contents)?;
-    Ok(deserialized)
+pub fn replace_invalid_entries(
+    root_path: &Path,
+    paths: &mut [PathBuf],
+    validator: impl Fn(&Path) -> bool,
+) -> Result<()> {
+    paths.sort_unstable_by(|p1, p2| validator(p2).cmp(&validator(p1)));
+
+    if let Some(first_invalid_entry) = paths.iter().position(|p| !validator(p)) {
+        let mut len_limit = paths.len() - first_invalid_entry;
+        let mut new_valid_paths = Vec::with_capacity(len_limit);
+
+        acc_valid_paths(root_path, &mut new_valid_paths, &mut len_limit, validator)?;
+        paths[first_invalid_entry..].swap_with_slice(new_valid_paths.as_mut_slice());
+    }
+    Ok(())
+}
+
+pub fn get_initial_entries(
+    root_path: &Path,
+    mut len_limit: usize,
+    validator: impl Fn(&Path) -> bool,
+) -> Result<Vec<PathBuf>> {
+    let mut entries = Vec::with_capacity(len_limit);
+    acc_valid_paths(root_path, &mut entries, &mut len_limit, validator)?;
+    Ok(entries)
 }

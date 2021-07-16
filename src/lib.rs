@@ -1,13 +1,18 @@
 pub(crate) mod prelude;
 pub(crate) mod util;
-pub use util::{dirs::DirMeta, media::meta::MediaMeta, ExportKind, ExportedJson};
+pub use util::{
+    cache::{
+        commit_cache_to_path, get_initial_entries, replace_invalid_entries, retrieve_cache,
+        HotCache,
+    },
+    dev::LangStats,
+    dirs::DirMeta,
+    media::meta::MediaMeta,
+    ExportKind, ExportedJson,
+};
 
 use std::path::Path;
-use util::{
-    cache::{commit_cache_to_path, retrieve_cache, HotCache},
-    dirs::get_dir_meta,
-    media::dispatch_meta_fn,
-};
+use util::{dirs::get_dir_meta, media::dispatch_meta_fn};
 
 pub fn buo_media_query(query: &Path) -> anyhow::Result<Option<MediaMeta>> {
     assert!(query.is_file());
@@ -17,7 +22,9 @@ pub fn buo_media_query(query: &Path) -> anyhow::Result<Option<MediaMeta>> {
 }
 
 pub fn buo_dir_meta(query: &Path) -> anyhow::Result<DirMeta> {
-    assert!(query.is_dir());
+    if !query.is_dir() {
+        panic!("{} is not a directory!", query.display());
+    }
     get_dir_meta(query)
 }
 
@@ -32,5 +39,5 @@ pub fn retrieve_cache_or_try_init(path: &Path) -> anyhow::Result<Option<HotCache
 }
 
 pub fn force_init_cache(path: &Path) -> anyhow::Result<()> {
-    commit_cache_to_path(path, HotCache::default())
+    commit_cache_to_path(path, HotCache::new())
 }
