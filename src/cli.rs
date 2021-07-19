@@ -2,8 +2,10 @@ pub mod args;
 use args::BuoArgs;
 use clap::Clap;
 
-use super::util::{media::dispatch_meta_fn, ExportedJson};
-use crate::prelude::*;
+use crate::{
+    prelude::*,
+    util::{json_out::ExportedJson, media::dispatch_meta_fn},
+};
 
 pub fn fetch_cli_args() -> Result<BuoArgs> {
     let args = BuoArgs::parse();

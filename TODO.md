@@ -12,7 +12,8 @@
 - ~~add dependencies for parsing DATA filetypes~~
 - prioritize loading metadata for TEXT, AUDIO, DEV, ~~DATA~~ with VIDEO last
 - potentially add thumbnail support
-- figure out how firefox stores bookmarks
+- ~~figure out how firefox stores bookmarks~~
+- add cross-platform webbrowser cfg dir paths
 - allow customizing bookmark sources
 
 <br/>
