@@ -18,7 +18,6 @@ fn acc_valid_paths(
 ) -> Result<()> {
     for ent in read_dir(dir_path)? {
         let path = ent?.path();
-
         if path.is_dir() {
             acc_valid_paths(&path, acc, len_limit, &validator)?;
         }
@@ -27,7 +26,6 @@ fn acc_valid_paths(
             *len_limit -= 1;
             acc.push(path);
         }
-
         if *len_limit == 0 {
             return Ok(());
         }

@@ -1,8 +1,8 @@
-use clap::Clap;
+use clap::{AppSettings, Clap};
 use std::path::PathBuf;
 
 #[derive(Clap)]
-// #[clap(color)] figure out the clap flag for colorized output, maybe AppSettings
+#[clap(setting = AppSettings::ColoredHelp)]
 pub struct BuoArgs {
     /// output serialized json
     #[clap(short, long)]

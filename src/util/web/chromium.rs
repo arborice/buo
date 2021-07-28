@@ -39,7 +39,12 @@ pub fn resolve_chromium_browser_bookmark_path(browser: ChromiumBrowser, os: Os) 
 
     match (browser, os) {
         (Brave, Linux) => bkmarks.push("BraveSoftware/Brave-Browser/"),
-        (Vivaldi, Linux) => bkmarks.push("vivaldi"),
+        (Vivaldi, Linux) => bkmarks.push("vivaldi/"),
+        (Brave, Windows) => bkmarks.push("Local/BraveSoftware/Brave-Browser/"),
+        (Chrome, Windows) => bkmarks.push("Local/Google/Chrome/"),
+        (Chromium, Windows) => bkmarks.push("Local/Google/Chromium/"),
+        (Edge, Windows) => bkmarks.push("Local/Microsoft/Edge/User Data/"),
+        (Vivaldi, Windows) => bkmarks.push("Local/Vivaldi/Application/"),
         _ => todo!(),
     };
 

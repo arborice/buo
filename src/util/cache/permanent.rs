@@ -1,12 +1,53 @@
 use crate::prelude::*;
 use std::{collections::HashMap, path::Path};
 
+// const MAX_CACHE_SIZE: usize = 600;
+/// TODO: change this to og size
+const MAX_CACHE_SIZE: usize = 128;
+
 #[derive(Default, Deserialize, Serialize)]
+pub struct CacheLookupKey {
+    cache_index: usize,
+}
+
+#[derive(Deserialize, Serialize)]
 pub struct HotCache {
     cache_lookup: HashMap<String, usize>,
     last_inserted_index: usize,
-    entries: Vec<Option<MediaMeta>>,
+    /// TODO: #\[serde_as(serde_with="[None; MAX_CACHE_SIZE]")]
+    entries: [Option<MediaMeta>; MAX_CACHE_SIZE],
 }
+
+impl Default for HotCache {
+    fn default() -> Self {
+        Self {
+            cache_lookup: HashMap::new(),
+            last_inserted_index: 0,
+            entries: [None; MAX_CACHE_SIZE],
+        }
+    }
+}
+
+#[derive(Debug)]
+enum CacheWrapResult {
+    CacheFull,
+    Linear(usize),
+    Wrapped(usize),
+}
+
+use std::{error::Error, fmt};
+impl fmt::Display for CacheWrapResult {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            CacheWrapResult::CacheFull => {
+                write!(f, "Cache is full. Only {} slots available.", MAX_CACHE_SIZE)
+            }
+            _ => unreachable!(),
+        }
+    }
+}
+
+impl Error for CacheWrapResult {}
 
 impl HotCache {
     pub fn new() -> Self {
@@ -18,9 +59,26 @@ impl HotCache {
         self.entries.get(*lookup_index).map(|e| e.as_ref())?
     }
 
+    pub fn inc_or_wrap_index(&self) -> CacheWrapResult {
+        use CacheWrapResult::*;
+        let mut i = self.last_inserted_index.checked_add(1).unwrap_or(0);
+
+        while let Some(_) = self.entries.iter() {
+            i += 1;
+        }
+        if i < MAX_CACHE_SIZE {
+            return Wrapped(i + 1);
+        }
+        CacheFull
+    }
+
     pub fn insert(&mut self, key: &str, entry: MediaMeta) -> Result<()> {
         if !self.cache_lookup.contains_key(key) {
-            self.last_inserted_index += 1;
+            self.last_inserted_index = match self.inc_or_wrap_index() {
+                CacheWrapResult::Linear(i) | CacheWrapResult::Wrapped(i) => i,
+                _ => bail!(""),
+            };
+
             self.entries
                 .get_mut(self.last_inserted_index)
                 .map(|e| e.replace(entry));
@@ -28,6 +86,16 @@ impl HotCache {
         } else {
             bail!("failed insertion")
         }
+    }
+
+    pub fn retain_by_key(&mut self, mut functor: impl FnMut(&str) -> bool) {
+        self.cache_lookup.retain(|key, _| functor(key));
+    }
+
+    pub fn retain_by_meta(&mut self, functor: fn(&MediaMeta) -> bool) {}
+
+    pub fn rebase(&mut self) -> Result<()> {
+        Ok(())
     }
 
     pub fn extend(&mut self, extension: impl Iterator<Item = (String, MediaMeta)>) {
