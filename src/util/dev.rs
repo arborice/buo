@@ -23,7 +23,7 @@ pub fn get_readme_contents_if_exists(parent_path: &Path) -> Option<Result<String
 }
 
 use std::num::NonZeroUsize;
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct LangStats {
     pub name: String,
     pub loc: Option<NonZeroUsize>,

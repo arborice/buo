@@ -1,7 +1,7 @@
 pub mod live;
 pub mod permanent;
 
-pub use permanent::{commit_cache_to_path, retrieve_cache, HotCache};
+pub use permanent::{commit_cache_to_path, retrieve_cache, PersistentCache};
 
 use crate::prelude::*;
 use std::{

@@ -2,7 +2,7 @@ use crate::{prelude::*, util::dev::LangStats};
 use chrono::{DateTime, Utc};
 use std::path::{Path, PathBuf};
 
-#[derive(Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct MediaMeta {
     pub file_path: PathBuf,
     pub file_name: String,
@@ -31,7 +31,7 @@ impl PartialEq<MediaMeta> for &Path {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum DateKind {
     Chrono(DateTime<Utc>),

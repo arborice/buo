@@ -3,7 +3,7 @@ pub(crate) mod util;
 pub use util::{
     cache::{
         commit_cache_to_path, get_initial_entries, replace_invalid_entries, retrieve_cache,
-        HotCache,
+        PersistentCache,
     },
     dev::LangStats,
     dirs::DirMeta,
@@ -28,7 +28,7 @@ pub fn buo_dir_meta(query: &Path) -> anyhow::Result<DirMeta> {
     get_dir_meta(query)
 }
 
-pub fn retrieve_cache_or_try_init(path: &Path) -> anyhow::Result<Option<HotCache>> {
+pub fn retrieve_cache_or_try_init(path: &Path) -> anyhow::Result<Option<PersistentCache>> {
     let try_fetch_existing = retrieve_cache(path);
     if path.exists() {
         let existing = try_fetch_existing?;
@@ -39,5 +39,5 @@ pub fn retrieve_cache_or_try_init(path: &Path) -> anyhow::Result<Option<HotCache
 }
 
 pub fn force_init_cache(path: &Path) -> anyhow::Result<()> {
-    commit_cache_to_path(path, HotCache::new())
+    commit_cache_to_path(path, PersistentCache::new())
 }
