@@ -1,6 +1,5 @@
 # TODO
 
-- use serde_as::serde_with PersistentCache for serde compat
 - setup caching architecture + strategy
 - ~~serialize cache for easy ffi~~
 

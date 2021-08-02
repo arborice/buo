@@ -1,23 +1,18 @@
 use crate::prelude::*;
 use std::{collections::HashMap, path::Path};
 
-// const MAX_CACHE_SIZE: usize = 600;
-/// TODO: change this to og size
-const MAX_CACHE_SIZE: usize = 32;
+const MAX_CACHE_SIZE: usize = 600;
 
-#[derive(Default, Deserialize, Serialize)]
-pub struct CacheLookupKey {
-    cache_index: usize,
-}
-
+#[serde_with::serde_as]
 #[derive(Deserialize, Serialize)]
 pub struct PersistentCache {
     cache_lookup: HashMap<String, usize>,
     last_inserted_index: usize,
-    /// TODO: #\[serde_as(serde_with="[None; MAX_CACHE_SIZE]")]
+    #[serde_as(as = "[Option<_>; MAX_CACHE_SIZE]")]
     entries: [Option<MediaMeta>; MAX_CACHE_SIZE],
 }
 
+#[must_use]
 fn gen_empty_cache_entries() -> [Option<MediaMeta>; MAX_CACHE_SIZE] {
     use std::convert::TryInto;
 
@@ -89,6 +84,7 @@ impl PersistentCache {
         }
     }
 
+    #[must_use]
     pub fn batch_query<P: AsRef<str>>(&self, queries: &[P]) -> Option<Vec<&MediaMeta>> {
         let res_indexes: Vec<usize> = queries
             .iter()
@@ -116,6 +112,7 @@ pub fn commit_cache_to_path(path: &Path, cache: PersistentCache) -> Result<()> {
     Ok(())
 }
 
+#[must_use]
 pub fn retrieve_cache(path: &Path) -> Result<PersistentCache> {
     let byte_contents = read(path)?;
     let deserialized: PersistentCache = bincode::deserialize(&byte_contents)?;
