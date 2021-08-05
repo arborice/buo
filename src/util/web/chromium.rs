@@ -62,6 +62,7 @@ pub fn get_chromium_bookmarks(bookmark_path: &Path) -> Result<Option<Vec<WebBook
         let mut bookmarks = vec![];
 
         for key in keys {
+            // this is a safe unwrap
             let mut child = root_folders.remove(&key).unwrap();
             let child_bookmarks =
                 serde_json::from_value::<Vec<WebBookmark>>(child["children"].take());

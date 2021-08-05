@@ -32,12 +32,11 @@ type DynExtMap = [FileExtCallback; LEN];
 use once_cell::sync::Lazy;
 use tinyvec::{array_vec, ArrayVec};
 pub static EXT_FNS: Lazy<ArrayVec<DynExtMap>> = Lazy::new(|| {
-    let mut tied = array_vec!(DynExtMap);
-
     static AA: &audio::AudioAnalyzer = &audio::AudioAnalyzer;
     static CA: &CodeAnalyzer = &CodeAnalyzer;
     static VA: &video::VideoAnalyzer = &video::VideoAnalyzer;
 
+    let mut tied = array_vec!(DynExtMap);
     for ext in FileExt::iter() {
         if ext.is_audio() {
             tied.push(FileExtCallback(ext, AA));
@@ -46,13 +45,6 @@ pub static EXT_FNS: Lazy<ArrayVec<DynExtMap>> = Lazy::new(|| {
         } else if ext.is_dev() {
             tied.push(FileExtCallback(ext, CA));
         }
-    }
-
-    if tied
-        .iter()
-        .any(|FileExtCallback(ext, _)| *ext == FileExt::default())
-    {
-        panic!("EXT_FNS LEN incorrect");
     }
 
     tied

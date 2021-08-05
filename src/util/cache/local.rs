@@ -1,7 +1,7 @@
 use crate::prelude::*;
 use std::{collections::HashMap, path::Path};
 
-const MAX_CACHE_SIZE: usize = 600;
+pub const MAX_CACHE_SIZE: usize = 1200;
 
 #[serde_with::serde_as]
 #[derive(Deserialize, Serialize)]
@@ -23,7 +23,7 @@ fn gen_empty_cache_entries() -> [Option<MediaMeta>; MAX_CACHE_SIZE] {
 
     cache_on_heap
         .try_into()
-        .expect(&format!("Cache size exceeds {}", MAX_CACHE_SIZE))
+        .unwrap_or_else(|_| panic!("Cache size must be {}", MAX_CACHE_SIZE))
 }
 
 impl PersistentCache {
@@ -62,8 +62,11 @@ impl PersistentCache {
 
     pub fn remove(&mut self, key: &str) -> Option<MediaMeta> {
         let index = self.cache_lookup.get(key)?;
-        assert!(*index < MAX_CACHE_SIZE);
-        self.entries[*index].take()
+        if *index < MAX_CACHE_SIZE {
+            self.entries[*index].take()
+        } else {
+            None
+        }
     }
 
     pub fn retain(&mut self, functor: fn(&str, Option<&MediaMeta>) -> bool) {
@@ -74,7 +77,9 @@ impl PersistentCache {
             let must_remove = functor(key, maybe_meta);
 
             if must_remove {
-                self.entries.get_mut(*index).map(|e| *e = None);
+                if let Some(entry) = self.entries.get_mut(*index) {
+                    *entry = None;
+                }
                 keys_to_remove.push(key.clone());
             }
         }
@@ -105,6 +110,12 @@ impl PersistentCache {
     }
 }
 
+impl Default for PersistentCache {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 use std::fs::{read, write};
 pub fn commit_cache_to_path(path: &Path, cache: PersistentCache) -> Result<()> {
     let serialized: Vec<u8> = bincode::serialize(&cache)?;
@@ -112,9 +123,38 @@ pub fn commit_cache_to_path(path: &Path, cache: PersistentCache) -> Result<()> {
     Ok(())
 }
 
-#[must_use]
-pub fn retrieve_cache(path: &Path) -> Result<PersistentCache> {
+use bincode::ErrorKind as BinErr;
+use std::io::ErrorKind as IoErr;
+
+fn init_cache(path: &Path) -> Result<PersistentCache> {
+    let dfl_cache = PersistentCache::new();
+    let serialized_cache: Vec<u8> = bincode::serialize(&dfl_cache)?;
+    write(path, serialized_cache)?;
+    Ok(dfl_cache)
+}
+
+fn is_init_candidate(err: &BinErr) -> bool {
+    use IoErr::{AlreadyExists, InvalidData, InvalidInput, NotFound, PermissionDenied};
+    match err {
+        BinErr::Io(e)
+            if matches!(
+                e.kind(),
+                NotFound | PermissionDenied | AlreadyExists | InvalidInput | InvalidData
+            ) =>
+        {
+            true
+        }
+        _ => false,
+    }
+}
+
+pub fn retrieve_or_init_cache(path: &Path) -> Result<PersistentCache> {
     let byte_contents = read(path)?;
-    let deserialized: PersistentCache = bincode::deserialize(&byte_contents)?;
-    Ok(deserialized)
+    let deserialized: Result<PersistentCache, _> = bincode::deserialize(&byte_contents);
+
+    match deserialized {
+        Err(e) if is_init_candidate(&*e) => init_cache(path),
+        Err(e) => bail!(e),
+        Ok(res) => Ok(res),
+    }
 }

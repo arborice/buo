@@ -19,6 +19,12 @@ pub struct MediaMeta {
     pub extra: Option<String>,
 }
 
+impl PartialEq<MediaMeta> for MediaMeta {
+    fn eq(&self, other: &MediaMeta) -> bool {
+        self.file_path.eq(&other.file_path)
+    }
+}
+
 impl PartialEq<MediaMeta> for PathBuf {
     fn eq(&self, rh: &MediaMeta) -> bool {
         self.eq(&rh.file_path)
@@ -53,9 +59,8 @@ impl fmt::Display for DateKind {
 
 macro_rules! append_metatag_if_not_empty {
     ($out:expr, $metatag:expr, $($tokens:tt)*) => {
-        use colored::Colorize;
         if !$metatag.is_empty() {
-            $out.push_str(&format!($($tokens)*, $metatag).green());
+            $out.push_str(&format!($($tokens)*, $metatag));
         }
     };
 }

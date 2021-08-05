@@ -1,7 +1,8 @@
-pub mod live;
-pub mod permanent;
+pub mod local;
+pub mod session;
 
-pub use permanent::{commit_cache_to_path, retrieve_cache, PersistentCache};
+pub use local::{commit_cache_to_path, retrieve_or_init_cache, PersistentCache, MAX_CACHE_SIZE};
+pub use session::LiveCache;
 
 use crate::prelude::*;
 use std::{

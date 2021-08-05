@@ -64,8 +64,6 @@ fn recurse_total_dir_size(dir_path: &Path, walk_results: &mut DirWalker) {
 
 /// only temporary layout for DirMeta struct.
 pub fn get_dir_meta(dir_path: &Path) -> Result<DirMeta> {
-    assert!(dir_path.is_dir());
-
     let mut dir_walker = DirWalker::default();
     recurse_total_dir_size(dir_path, &mut dir_walker);
 
